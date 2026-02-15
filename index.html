@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snell's Law Drill - Physics Game</title>
+    <style>
+        /* ===== CSS VARIABLES FOR CONSISTENT THEMING ===== */
+        :root {
+            --primary-bg: #0a0e27;
+            --secondary-bg: #1a1f3a;
+            --accent-cyan: #00d9ff;
+            --accent-pink: #ff006e;
+            --accent-yellow: #ffbe0b;
+            --accent-green: #06ffa5;
+            --text-primary: #ffffff;
+            --text-secondary: #a0aec0;
+            --border-color: #2d3748;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        /* ===== FONTS - Using distinctive web fonts ===== */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght:400;700;900&family=Space+Mono:wght@400;700&display=swap');
+
+        /* ===== GLOBAL RESET AND BASE STYLES ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Mono', monospace;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0a0e27 100%);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* ===== ANIMATED BACKGROUND EFFECTS ===== */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0, 217, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255, 0, 110, 0.1) 0%, transparent 50%);
+            animation: pulseBackground 8s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulseBackground {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+        }
+
+        /* ===== MAIN CONTAINER ===== */
+        #game-container {
+            width: 95vw;
+            max-width: 1400px;
+            height: 92vh;
+            background: rgba(26, 31, 58, 0.9);
+            border: 3px solid var(--accent-cyan);
+            border-radius: 20px;
+            box-shadow: 
+                0 0 30px rgba(0, 217, 255, 0.3),
+                0 0 60px rgba(255, 0, 110, 0.2),
+                inset 0 0 40px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ===== SCREEN MANAGEMENT ===== */
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== HEADER STYLES ===== */
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5em;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-pink), var(--accent-yellow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(0, 217, 255, 0.5);
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.3); }
+        }
+
+        h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5em;
+            color: var(--accent-cyan);
+            margin-bottom: 10px;
+        }
+
+        /* ===== BUTTON STYLES ===== */
+        .btn {
+            font-family: 'Orbitron', sans-serif;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            font-weight: 700;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-pink));
+            color: white;
+            box-shadow: 0 5px 20px rgba(0, 217, 255, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0, 217, 255, 0.6);
+        }
+
+        .btn-secondary {
+            background: var(--secondary-bg);
+            color: var(--accent-cyan);
+            border: 2px solid var(--accent-cyan);
+        }
+
+        .btn-secondary:hover {
+            background: var(--accent-cyan);
+            color: var(--primary-bg);
+            transform: scale(1.05);
+        }
+
+        /* ===== INTRO SCREEN ===== */
+        #intro-screen {
+            justify-content: center;
+            align-items: center;
+        }
+
+        .intro-content {
+            max-width: 800px;
+            text-align: center;
+        }
+
+        .rules-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--accent-cyan);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            text-align: left;
+        }
+
+        .rules-box ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .rules-box li {
+            padding: 6px 0;
+            padding-left: 25px;
+            position: relative;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            font-size: 0.95em;
+        }
+
+        .rules-box li::before {
+            content: '►';
+            position: absolute;
+            left: 0;
+            color: var(--accent-yellow);
+            font-weight: bold;
+        }
+
+        /* ===== GAME SCREEN ===== */
+        #game-screen {
+            padding: 20px;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 2px solid var(--accent-cyan);
+        }
+
+        .timer, .score {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8em;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .timer-value {
+            color: var(--accent-yellow);
+            text-shadow: 0 0 10px var(--accent-yellow);
+        }
+
+        .score-value {
+            color: var(--accent-green);
+            text-shadow: 0 0 10px var(--accent-green);
+        }
+
+        .game-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            height: calc(100% - 120px);
+        }
+
+        /* ===== DIAGRAM PANEL ===== */
+        .diagram-panel {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--accent-cyan);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #diagram-canvas {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+        }
+
+        /* ===== QUESTION PANEL ===== */
+        .question-panel {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--accent-pink);
+            border-radius: 15px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .question-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.4em;
+            color: var(--accent-yellow);
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 2px solid var(--accent-yellow);
+        }
+
+        .answer-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        #answer-input {
+            flex: 1;
+            font-family: 'Space Mono', monospace;
+            font-size: 1.5em;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 3px solid var(--accent-cyan);
+            border-radius: 10px;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        #answer-input:focus {
+            outline: none;
+            border-color: var(--accent-yellow);
+            box-shadow: 0 0 20px rgba(255, 190, 11, 0.4);
+        }
+
+        .feedback-box {
+            min-height: 80px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 1.1em;
+            line-height: 1.5;
+        }
+
+        .feedback-box.success {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .feedback-box.error {
+            border-color: var(--error);
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+        }
+
+        .feedback-box.hint {
+            border-color: var(--warning);
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .button-group .btn {
+            flex: 1;
+        }
+
+        /* ===== END SCREEN ===== */
+        #end-screen {
+            justify-content: center;
+            align-items: center;
+        }
+
+        .end-content {
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .final-score {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 6em;
+            color: var(--accent-green);
+            text-shadow: 0 0 30px var(--accent-green);
+            margin: 30px 0;
+            animation: scoreReveal 1s ease-out;
+        }
+
+        @keyframes scoreReveal {
+            from { 
+                transform: scale(0);
+                opacity: 0;
+            }
+            to { 
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .stats {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--accent-cyan);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 1.2em;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+        }
+
+        .stat-value {
+            color: var(--accent-yellow);
+            font-weight: bold;
+        }
+
+        /* ===== RESPONSIVE ADJUSTMENTS ===== */
+        @media (max-width: 1200px) {
+            .game-content {
+                grid-template-columns: 1fr;
+            }
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <!-- ===== INTRO SCREEN ===== -->
+        <div id="intro-screen" class="screen active">
+            <div class="intro-content">
+                <h1>⚡ SNELL'S LAW DRILL ⚡</h1>
+                <h2>Physics With Keith</h2>
+                <div class="rules-box">
+                    <h2>🎯 How to Play</h2>
+                    <ul>
+                        <li><strong>Objective:</strong> Answer as many refraction questions correctly as possible in 5 minutes!</li>
+                        <li><strong>The Physics:</strong> Use Snell's Law: n₁ sin(θ₁) = n₂ sin(θ₂)</li>
+                        <li><strong>Questions:</strong> Calculate missing angles or refractive indices from optical diagrams</li>
+                        <li><strong>Attempts:</strong> You get 3 attempts per question. Hints appear after wrong answers!</li>
+                        <li><strong>Accuracy:</strong> Round your answer to 2 significant figures</li>
+                        <li><strong>Scoring:</strong> +3 points for first try, +2 for second try, +1 for third try</li>
+                        <li><strong>Total Internal Reflection:</strong> Watch out for scenarios where light can't escape!</li>
+                    </ul>
+                </div>
+                <button class="btn btn-primary" onclick="startGame()">START CHALLENGE</button>
+            </div>
+        </div>
+
+        <!-- ===== GAME SCREEN ===== -->
+        <div id="game-screen" class="screen">
+            <div class="game-header">
+                <div class="timer">
+                    ⏱️ Time: <span class="timer-value" id="timer">5:00</span>
+                </div>
+                <button class="btn btn-secondary" onclick="endGame()" style="padding: 10px 20px; font-size: 0.9em;">END EARLY</button>
+                <div class="score">
+                    ⭐ Score: <span class="score-value" id="score">0</span>
+                </div>
+            </div>
+
+            <div class="game-content">
+                <div class="diagram-panel">
+                    <canvas id="diagram-canvas" width="600" height="500"></canvas>
+                </div>
+
+                <div class="question-panel">
+                    <div class="question-text" id="question-text">
+                        Loading question...
+                    </div>
+
+                    <div class="answer-section">
+                        <div class="input-group">
+                            <input type="text" id="answer-input" placeholder="Enter answer" autocomplete="off">
+                            <button class="btn btn-primary" onclick="submitAnswer()">SUBMIT</button>
+                        </div>
+
+                        <div class="feedback-box" id="feedback">
+                            Enter your answer and press SUBMIT
+                        </div>
+                    </div>
+
+                    <div class="button-group" id="next-button-container" style="display: none;">
+                        <button class="btn btn-primary" onclick="nextQuestion()">NEXT QUESTION →</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== END SCREEN ===== -->
+        <div id="end-screen" class="screen">
+            <div class="end-content">
+                <h1>🏆 CHALLENGE COMPLETE! 🏆</h1>
+                <div class="final-score" id="final-score">0</div>
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Questions Answered:</span>
+                        <span class="stat-value" id="total-questions">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Correct Answers:</span>
+                        <span class="stat-value" id="correct-answers">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Accuracy:</span>
+                        <span class="stat-value" id="accuracy">0%</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="restartGame()">PLAY AGAIN</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== GAME STATE VARIABLES =====
+        let score = 0;
+        let timeRemaining = 300; // 5 minutes in seconds
+        let timerInterval = null;
+        let currentQuestion = null;
+        let attempts = 0;
+        let questionsAnswered = 0;
+        let correctAnswers = 0;
+
+        // ===== CANVAS SETUP =====
+        const canvas = document.getElementById('diagram-canvas');
+        const ctx = canvas.getContext('2d');
+
+        // ===== GAME FLOW FUNCTIONS =====
+
+        /**
+         * Switches between different game screens
+         * @param {string} screenId - The ID of the screen to show
+         */
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        /**
+         * Starts the game - initializes timer and first question
+         */
+        function startGame() {
+            score = 0;
+            timeRemaining = 300;
+            questionsAnswered = 0;
+            correctAnswers = 0;
+            document.getElementById('score').textContent = score;
+            
+            showScreen('game-screen');
+            startTimer();
+            nextQuestion();
+        }
+
+        /**
+         * Starts the countdown timer
+         */
+        function startTimer() {
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                updateTimerDisplay();
+                
+                // Flash timer when less than 30 seconds remaining
+                if (timeRemaining <= 30 && timeRemaining > 0) {
+                    document.querySelector('.timer-value').style.color = 'var(--error)';
+                }
+                
+                if (timeRemaining <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        /**
+         * Updates the timer display in MM:SS format
+         */
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            document.getElementById('timer').textContent = 
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        /**
+         * Ends the game and shows final results
+         */
+        function endGame() {
+            clearInterval(timerInterval);
+            
+            // Update end screen statistics
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('total-questions').textContent = questionsAnswered;
+            document.getElementById('correct-answers').textContent = correctAnswers;
+            
+            const accuracy = questionsAnswered > 0 
+                ? Math.round((correctAnswers / questionsAnswered) * 100) 
+                : 0;
+            document.getElementById('accuracy').textContent = accuracy + '%';
+            
+            showScreen('end-screen');
+        }
+
+        /**
+         * Restarts the game from the beginning
+         */
+        function restartGame() {
+            showScreen('intro-screen');
+        }
+
+        // ===== QUESTION GENERATION =====
+
+        /**
+         * Generates a new random question about refraction
+         * Question types:
+         * 1. Calculate angle of refraction (θ₂)
+         * 2. Calculate angle of incidence (θ₁)
+         * 3. Calculate refractive index n₁
+         * 4. Calculate refractive index n₂
+         * 5. Total internal reflection scenarios
+         */
+        function generateQuestion() {
+            const questionType = Math.floor(Math.random() * 5);
+            let question = {};
+            
+            switch(questionType) {
+                case 0: // Find angle of refraction
+                    question = generateAngleRefractionQuestion();
+                    break;
+                case 1: // Find angle of incidence
+                    question = generateAngleIncidenceQuestion();
+                    break;
+                case 2: // Find n1
+                    question = generateN1Question();
+                    break;
+                case 3: // Find n2
+                    question = generateN2Question();
+                    break;
+                case 4: // Total internal reflection
+                    question = generateTIRQuestion();
+                    break;
+            }
+            
+            return question;
+        }
+
+        /**
+         * Generate question: Find angle of refraction
+         */
+        function generateAngleRefractionQuestion() {
+            const n1 = 1.0 + Math.random() * 1.5; // 1.0 to 2.5
+            const n2 = 1.0 + Math.random() * 1.5;
+            const theta1 = 10 + Math.random() * 60; // 10 to 70 degrees
+            
+            // Calculate theta2 using Snell's law: n1*sin(θ1) = n2*sin(θ2)
+            const sinTheta2 = (n1 * Math.sin(theta1 * Math.PI / 180)) / n2;
+            
+            // Check for total internal reflection
+            if (sinTheta2 > 1) {
+                return generateTIRQuestion(); // Generate TIR question instead
+            }
+            
+            const theta2 = Math.asin(sinTheta2) * 180 / Math.PI;
+            
+            return {
+                type: 'angle2',
+                n1: n1,
+                n2: n2,
+                theta1: theta1,
+                theta2: theta2,
+                answer: theta2,
+                unit: '°',
+                questionText: `Light travels from medium 1 (n₁ = ${n1.toFixed(2)}) to medium 2 (n₂ = ${n2.toFixed(2)}) at an incident angle of ${theta1.toFixed(1)}°. Calculate the angle of refraction θ₂.`,
+                hideRay: 2
+            };
+        }
+
+        /**
+         * Generate question: Find angle of incidence
+         */
+        function generateAngleIncidenceQuestion() {
+            const n1 = 1.0 + Math.random() * 1.5;
+            const n2 = 1.0 + Math.random() * 1.5;
+            const theta2 = 10 + Math.random() * 60;
+            
+            // Calculate theta1 using Snell's law: n1*sin(θ1) = n2*sin(θ2)
+            const sinTheta1 = (n2 * Math.sin(theta2 * Math.PI / 180)) / n1;
+            
+            if (sinTheta1 > 1) {
+                return generateAngleIncidenceQuestion(); // Regenerate if invalid
+            }
+            
+            const theta1 = Math.asin(sinTheta1) * 180 / Math.PI;
+            
+            return {
+                type: 'angle1',
+                n1: n1,
+                n2: n2,
+                theta1: theta1,
+                theta2: theta2,
+                answer: theta1,
+                unit: '°',
+                questionText: `Light travels from medium 1 (n₁ = ${n1.toFixed(2)}) to medium 2 (n₂ = ${n2.toFixed(2)}) and refracts at angle θ₂ = ${theta2.toFixed(1)}°. Calculate the incident angle θ₁.`,
+                hideRay: 1
+            };
+        }
+
+        /**
+         * Generate question: Find refractive index n1
+         */
+        function generateN1Question() {
+            const n2 = 1.0 + Math.random() * 1.5;
+            const theta1 = 10 + Math.random() * 60;
+            const theta2 = 10 + Math.random() * 60;
+            
+            // Calculate n1 using Snell's law: n1*sin(θ1) = n2*sin(θ2)
+            const n1 = (n2 * Math.sin(theta2 * Math.PI / 180)) / Math.sin(theta1 * Math.PI / 180);
+            
+            return {
+                type: 'n1',
+                n1: n1,
+                n2: n2,
+                theta1: theta1,
+                theta2: theta2,
+                answer: n1,
+                unit: '',
+                questionText: `Light travels at incident angle θ₁ = ${theta1.toFixed(1)}° from medium 1 to medium 2 (n₂ = ${n2.toFixed(2)}) and refracts at angle θ₂ = ${theta2.toFixed(1)}°. Calculate the refractive index n₁.`,
+                hideRay: null
+            };
+        }
+
+        /**
+         * Generate question: Find refractive index n2
+         */
+        function generateN2Question() {
+            const n1 = 1.0 + Math.random() * 1.5;
+            const theta1 = 10 + Math.random() * 60;
+            const theta2 = 10 + Math.random() * 60;
+            
+            // Calculate n2 using Snell's law: n1*sin(θ1) = n2*sin(θ2)
+            const n2 = (n1 * Math.sin(theta1 * Math.PI / 180)) / Math.sin(theta2 * Math.PI / 180);
+            
+            return {
+                type: 'n2',
+                n1: n1,
+                n2: n2,
+                theta1: theta1,
+                theta2: theta2,
+                answer: n2,
+                unit: '',
+                questionText: `Light travels at incident angle θ₁ = ${theta1.toFixed(1)}° from medium 1 (n₁ = ${n1.toFixed(2)}) and refracts at angle θ₂ = ${theta2.toFixed(1)}°. Calculate the refractive index n₂.`,
+                hideRay: null
+            };
+        }
+
+        /**
+         * Generate question: Total Internal Reflection
+         */
+        function generateTIRQuestion() {
+            // For TIR, n1 must be greater than n2
+            const n1 = 1.3 + Math.random() * 0.9; // 1.3 to 2.2
+            const n2 = 1.0 + Math.random() * 0.3; // 1.0 to 1.3 (ensure n2 < n1)
+            
+            // Calculate critical angle
+            const criticalAngle = Math.asin(n2 / n1) * 180 / Math.PI;
+            
+            // Choose angle above critical angle for TIR
+            const theta1 = criticalAngle + 5 + Math.random() * 20;
+            
+            return {
+                type: 'tir',
+                n1: n1,
+                n2: n2,
+                theta1: theta1,
+                theta2: null, // No refracted ray
+                answer: criticalAngle,
+                unit: '°',
+                questionText: `Light travels from medium 1 (n₁ = ${n1.toFixed(2)}) to medium 2 (n₂ = ${n2.toFixed(2)}) at incident angle ${theta1.toFixed(1)}°. Calculate the critical angle for total internal reflection.`,
+                hideRay: 2,
+                isTIR: true
+            };
+        }
+
+        /**
+         * Generates next question and resets attempt counter
+         */
+        function nextQuestion() {
+            currentQuestion = generateQuestion();
+            attempts = 0;
+            
+            // Reset UI
+            document.getElementById('answer-input').value = '';
+            document.getElementById('answer-input').disabled = false;
+            document.getElementById('feedback').textContent = 'Enter your answer and press SUBMIT';
+            document.getElementById('feedback').className = 'feedback-box';
+            document.getElementById('next-button-container').style.display = 'none';
+            
+            // Update question text
+            document.getElementById('question-text').textContent = currentQuestion.questionText;
+            
+            // Set placeholder based on unit
+            document.getElementById('answer-input').placeholder = 
+                currentQuestion.unit === '°' ? 'Answer in degrees' : 'Answer (no unit)';
+            
+            // Draw diagram
+            drawDiagram(currentQuestion, false);
+            
+            // Focus input
+            document.getElementById('answer-input').focus();
+        }
+
+        // ===== ANSWER VALIDATION =====
+
+        /**
+         * Submits and validates the user's answer
+         */
+        function submitAnswer() {
+            const userInput = document.getElementById('answer-input').value.trim();
+            
+            if (userInput === '') {
+                showFeedback('Please enter an answer!', 'error');
+                return;
+            }
+            
+            const userAnswer = parseFloat(userInput);
+            
+            if (isNaN(userAnswer)) {
+                showFeedback('Please enter a valid number!', 'error');
+                return;
+            }
+            
+            attempts++;
+            
+            // Check if answer is correct
+            if (isAnswerCorrect(userAnswer, currentQuestion.answer)) {
+                handleCorrectAnswer();
+            } else {
+                handleIncorrectAnswer(userAnswer);
+            }
+        }
+
+        /**
+         * Checks if user's answer is correct within tolerance
+         * Rounds both answers to 2 significant figures and allows 1 digit difference in 2nd sf
+         */
+        function isAnswerCorrect(userAnswer, correctAnswer) {
+            // Round both to 2 significant figures
+            const userRounded = roundToSigFigs(userAnswer, 2);
+            const correctRounded = roundToSigFigs(correctAnswer, 2);
+            
+            // Check if exactly equal
+            if (Math.abs(userRounded - correctRounded) < 0.001) {
+                return true;
+            }
+            
+            // Check if second significant figure is one digit away
+            // Get the order of magnitude
+            const magnitude = Math.floor(Math.log10(Math.abs(correctRounded)));
+            const tolerance = Math.pow(10, magnitude - 1); // One unit in the 2nd significant figure
+            
+            return Math.abs(userAnswer - correctAnswer) <= tolerance;
+        }
+
+        /**
+         * Rounds a number to specified significant figures
+         */
+        function roundToSigFigs(num, sigFigs) {
+            if (num === 0) return 0;
+            const magnitude = Math.floor(Math.log10(Math.abs(num)));
+            const scale = Math.pow(10, sigFigs - magnitude - 1);
+            return Math.round(num * scale) / scale;
+        }
+
+        /**
+         * Handles correct answer submission
+         */
+        function handleCorrectAnswer() {
+            questionsAnswered++;
+            correctAnswers++;
+            
+            // Award points based on attempts
+            const points = 4 - attempts; // 3 points for first try, 2 for second, 1 for third
+            score += points;
+            document.getElementById('score').textContent = score;
+            
+            showFeedback(`🎉 CORRECT! +${points} points!`, 'success');
+            
+            // Show complete diagram with answer
+            drawDiagram(currentQuestion, true);
+            
+            // Disable input and show next button
+            document.getElementById('answer-input').disabled = true;
+            document.getElementById('next-button-container').style.display = 'block';
+        }
+
+        /**
+         * Handles incorrect answer submission
+         */
+        function handleIncorrectAnswer(userAnswer) {
+            if (attempts >= 3) {
+                // Out of attempts
+                questionsAnswered++;
+                
+                const correctRounded = roundToSigFigs(currentQuestion.answer, 2);
+                showFeedback(
+                    `❌ Out of attempts! The correct answer was ${correctRounded}${currentQuestion.unit}`,
+                    'error'
+                );
+                
+                // Show complete diagram with answer
+                drawDiagram(currentQuestion, true);
+                
+                // Disable input and show next button
+                document.getElementById('answer-input').disabled = true;
+                document.getElementById('next-button-container').style.display = 'block';
+            } else {
+                // Give hint
+                const attemptsRemaining = 3 - attempts;
+                const hint = getHint(currentQuestion, attempts);
+                showFeedback(
+                    `❌ Incorrect. ${attemptsRemaining} attempt${attemptsRemaining > 1 ? 's' : ''} remaining.<br><br>💡 ${hint}`,
+                    'hint'
+                );
+            }
+        }
+
+        /**
+         * Generates helpful hints based on question type and attempt number
+         */
+        function getHint(question, attemptNum) {
+            const hints = {
+                'angle2': [
+                    'Remember Snell\'s Law: n₁ sin(θ₁) = n₂ sin(θ₂). Rearrange to solve for θ₂.',
+                    'First calculate sin(θ₂) = (n₁/n₂) × sin(θ₁), then use arcsin to find θ₂.',
+                    `Try: sin(θ₂) = (${question.n1.toFixed(2)}/${question.n2.toFixed(2)}) × sin(${question.theta1.toFixed(1)}°)`
+                ],
+                'angle1': [
+                    'Use Snell\'s Law: n₁ sin(θ₁) = n₂ sin(θ₂). Solve for θ₁.',
+                    'Calculate sin(θ₁) = (n₂/n₁) × sin(θ₂), then use arcsin.',
+                    `Try: sin(θ₁) = (${question.n2.toFixed(2)}/${question.n1.toFixed(2)}) × sin(${question.theta2.toFixed(1)}°)`
+                ],
+                'n1': [
+                    'Rearrange Snell\'s Law to isolate n₁: n₁ = n₂ sin(θ₂) / sin(θ₁)',
+                    'Remember to use the sine of the angles, not the angles themselves.',
+                    `Try: n₁ = ${question.n2.toFixed(2)} × sin(${question.theta2.toFixed(1)}°) / sin(${question.theta1.toFixed(1)}°)`
+                ],
+                'n2': [
+                    'Rearrange Snell\'s Law to isolate n₂: n₂ = n₁ sin(θ₁) / sin(θ₂)',
+                    'Make sure your calculator is in degree mode!',
+                    `Try: n₂ = ${question.n1.toFixed(2)} × sin(${question.theta1.toFixed(1)}°) / sin(${question.theta2.toFixed(1)}°)`
+                ],
+                'tir': [
+                    'For the critical angle, use: sin(θc) = n₂/n₁',
+                    'The critical angle is when sin(θ₂) would equal 1.',
+                    `Try: θc = arcsin(${question.n2.toFixed(2)}/${question.n1.toFixed(2)})`
+                ]
+            };
+            
+            return hints[question.type][attemptNum - 1] || 'Double-check your calculation!';
+        }
+
+        /**
+         * Displays feedback message to user
+         */
+        function showFeedback(message, type) {
+            const feedback = document.getElementById('feedback');
+            feedback.innerHTML = message;
+            feedback.className = 'feedback-box ' + type;
+        }
+
+        // ===== DIAGRAM DRAWING =====
+
+        /**
+         * Draws the optical diagram on canvas
+         * @param {Object} question - The current question object
+         * @param {boolean} showAnswer - Whether to show the complete solution
+         */
+        function drawDiagram(question, showAnswer) {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const rayLength = 200;
+            
+            // Draw two media with different colors
+            // Medium 1 (top) - lighter blue
+            ctx.fillStyle = 'rgba(0, 150, 255, 0.15)';
+            ctx.fillRect(0, 0, canvas.width, centerY);
+            
+            // Medium 2 (bottom) - darker blue
+            ctx.fillStyle = 'rgba(0, 100, 200, 0.25)';
+            ctx.fillRect(0, centerY, canvas.width, canvas.height - centerY);
+            
+            // Draw interface line
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([10, 5]);
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(canvas.width, centerY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Draw normal line (dashed)
+            ctx.strokeStyle = 'rgba(255, 190, 11, 0.6)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY - 250);
+            ctx.lineTo(centerX, centerY + 250);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Label normal
+            ctx.fillStyle = 'rgba(255, 190, 11, 0.8)';
+            ctx.font = 'bold 14px Space Mono';
+            ctx.fillText('Normal', centerX + 10, centerY - 230);
+            
+            // Calculate ray endpoints
+            const theta1Rad = question.theta1 * Math.PI / 180;
+            const incident = {
+                startX: centerX - rayLength * Math.sin(theta1Rad),
+                startY: centerY - rayLength * Math.cos(theta1Rad),
+                endX: centerX,
+                endY: centerY
+            };
+            
+            let refracted = null;
+            if (question.theta2 !== null) {
+                const theta2Rad = question.theta2 * Math.PI / 180;
+                refracted = {
+                    startX: centerX,
+                    startY: centerY,
+                    endX: centerX + rayLength * Math.sin(theta2Rad),
+                    endY: centerY + rayLength * Math.cos(theta2Rad)
+                };
+            }
+            
+            // Draw incident ray (Ray 1) if not hidden
+            if (question.hideRay !== 1 || showAnswer) {
+                drawRay(incident.startX, incident.startY, incident.endX, incident.endY, 
+                        'rgba(255, 0, 110, 0.8)', 3, showAnswer);
+                
+                // Draw angle arc for theta1
+                // Normal points up (-90° in canvas), incident ray is at -90° - theta1
+                // Arc should sweep from the incident ray to the normal (counterclockwise)
+                const incidentAngle = -90 - question.theta1; // Canvas angle of incident ray
+                drawAngleArc(centerX, centerY, 60, incidentAngle, -90, 
+                            'rgba(255, 0, 110, 0.6)');
+                
+                // Position label away from the ray
+                ctx.fillStyle = 'rgba(255, 0, 110, 1)';
+                ctx.font = 'bold 18px Space Mono';
+                const labelX1 = centerX - 70;
+                const labelY1 = centerY - 70;
+                ctx.fillText('θ₁', labelX1, labelY1);
+                
+                if (showAnswer || question.type !== 'angle1') {
+                    ctx.font = '14px Space Mono';
+                    ctx.fillText(`${question.theta1.toFixed(1)}°`, labelX1 - 5, labelY1 + 18);
+                }
+            }
+            
+            // Draw refracted ray (Ray 2) if not hidden and exists
+            if (refracted && (question.hideRay !== 2 || showAnswer)) {
+                if (question.isTIR && showAnswer) {
+                    // Draw reflected ray instead
+                    const reflected = {
+                        startX: centerX,
+                        startY: centerY,
+                        endX: centerX + rayLength * Math.sin(theta1Rad),
+                        endY: centerY - rayLength * Math.cos(theta1Rad)
+                    };
+                    drawRay(reflected.startX, reflected.startY, reflected.endX, reflected.endY,
+                            'rgba(0, 217, 255, 0.8)', 3, showAnswer);
+                    
+                    // Add TIR label
+                    ctx.fillStyle = 'rgba(0, 217, 255, 1)';
+                    ctx.font = 'bold 16px Space Mono';
+                    ctx.fillText('Total Internal', centerX + 100, centerY - 100);
+                    ctx.fillText('Reflection!', centerX + 100, centerY - 80);
+                } else {
+                    drawRay(refracted.startX, refracted.startY, refracted.endX, refracted.endY,
+                            'rgba(0, 217, 255, 0.8)', 3, showAnswer);
+                    
+                    // Draw angle arc for theta2
+                    // Normal points down (90° in canvas), refracted ray is at 90° - theta2
+                    // Arc should sweep from the refracted ray to the normal
+                    const refractedAngle = 90 - question.theta2; // Canvas angle of refracted ray
+                    drawAngleArc(centerX, centerY, 70, refractedAngle, 90,
+                                'rgba(0, 217, 255, 0.6)');
+                    
+                    // Position label away from the ray
+                    ctx.fillStyle = 'rgba(0, 217, 255, 1)';
+                    ctx.font = 'bold 18px Space Mono';
+                    const labelX2 = centerX + 75;
+                    const labelY2 = centerY + 70;
+                    ctx.fillText('θ₂', labelX2, labelY2);
+                    
+                    if (showAnswer || question.type !== 'angle2') {
+                        ctx.font = '14px Space Mono';
+                        ctx.fillText(`${question.theta2.toFixed(1)}°`, labelX2 - 5, labelY2 + 18);
+                    }
+                }
+            }
+            
+            // Label refractive indices
+            ctx.font = 'bold 20px Space Mono';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            
+            // n1 label
+            ctx.fillText('n₁', 30, 40);
+            if (showAnswer || question.type !== 'n1') {
+                ctx.font = '16px Space Mono';
+                ctx.fillText(`= ${question.n1.toFixed(2)}`, 60, 40);
+            }
+            
+            // n2 label
+            ctx.font = 'bold 20px Space Mono';
+            ctx.fillText('n₂', 30, canvas.height - 30);
+            if (showAnswer || question.type !== 'n2') {
+                ctx.font = '16px Space Mono';
+                ctx.fillText(`= ${question.n2.toFixed(2)}`, 60, canvas.height - 30);
+            }
+            
+            // If showing answer and it's a TIR question, show critical angle
+            if (showAnswer && question.isTIR) {
+                ctx.fillStyle = 'rgba(255, 190, 11, 1)';
+                ctx.font = 'bold 16px Space Mono';
+                ctx.fillText(`Critical angle θc = ${question.answer.toFixed(1)}°`, 
+                            centerX - 120, canvas.height - 30);
+            }
+        }
+
+        /**
+         * Draws a light ray with an arrow at the midpoint
+         */
+        function drawRay(startX, startY, endX, endY, color, width, animated) {
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = width;
+            
+            // Draw main ray line
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+            
+            // Calculate midpoint for arrow placement
+            const midX = (startX + endX) / 2;
+            const midY = (startY + endY) / 2;
+            
+            // Draw arrowhead at midpoint
+            const angle = Math.atan2(endY - startY, endX - startX);
+            const arrowLength = 15;
+            const arrowAngle = Math.PI / 6;
+            
+            ctx.beginPath();
+            ctx.moveTo(midX, midY);
+            ctx.lineTo(
+                midX - arrowLength * Math.cos(angle - arrowAngle),
+                midY - arrowLength * Math.sin(angle - arrowAngle)
+            );
+            ctx.lineTo(
+                midX - arrowLength * Math.cos(angle + arrowAngle),
+                midY - arrowLength * Math.sin(angle + arrowAngle)
+            );
+            ctx.closePath();
+            ctx.fill();
+            
+            // Add glow effect if animated
+            if (animated) {
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = color;
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        /**
+         * Draws an angle arc
+         */
+        function drawAngleArc(centerX, centerY, radius, startAngle, endAngle, color) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 
+                   startAngle * Math.PI / 180, 
+                   endAngle * Math.PI / 180);
+            ctx.stroke();
+        }
+
+        // ===== EVENT LISTENERS =====
+        
+        // Allow Enter key to submit answer
+        document.getElementById('answer-input').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                submitAnswer();
+            }
+        });
+
+        // Global Enter key handler for next question functionality
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                const nextButtonContainer = document.getElementById('next-button-container');
+                const answerInput = document.getElementById('answer-input');
+                
+                // If next button is visible and input is disabled, go to next question
+                if (nextButtonContainer.style.display === 'block' && answerInput.disabled) {
+                    nextQuestion();
+                    event.preventDefault();
+                }
+            }
+        });
+
+        // Initialize game
+        showScreen('intro-screen');
+    </script>
+</body>
+</html>
