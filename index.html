@@ -925,6 +925,8 @@
          * Handles incorrect answer submission
          */
         function handleIncorrectAnswer(userAnswer) {
+            console.log('handleIncorrectAnswer called, attempts:', attempts, 'question type:', currentQuestion.type);
+            
             if (attempts >= 3) {
                 // Out of attempts
                 questionsAnswered++;
@@ -944,7 +946,9 @@
             } else {
                 // Give hint
                 const attemptsRemaining = 3 - attempts;
+                console.log('Getting hint for attempt:', attempts, 'type:', currentQuestion.type);
                 const hint = getHint(currentQuestion, attempts);
+                console.log('Hint received:', hint);
                 showFeedback(
                     `❌ Incorrect. ${attemptsRemaining} attempt${attemptsRemaining > 1 ? 's' : ''} remaining.<br><br>💡 ${hint}`,
                     'hint'
@@ -956,35 +960,54 @@
          * Generates helpful hints based on question type and attempt number
          */
         function getHint(question, attemptNum) {
-            const hints = {
-                'angle2': [
+            console.log('getHint called with type:', question.type, 'attemptNum:', attemptNum);
+            
+            let hintArray;
+            
+            // Build hints only for the specific question type to avoid null reference errors
+            if (question.type === 'angle2') {
+                hintArray = [
                     'Remember Snell\'s Law: n₁ sin(θ₁) = n₂ sin(θ₂). Rearrange to solve for θ₂.',
                     'First calculate sin(θ₂) = (n₁/n₂) × sin(θ₁), then use arcsin to find θ₂.',
                     `Try: sin(θ₂) = (${question.n1.toFixed(2)}/${question.n2.toFixed(2)}) × sin(${question.theta1.toFixed(1)}°)`
-                ],
-                'angle1': [
+                ];
+            } else if (question.type === 'angle1') {
+                hintArray = [
                     'Use Snell\'s Law: n₁ sin(θ₁) = n₂ sin(θ₂). Solve for θ₁.',
                     'Calculate sin(θ₁) = (n₂/n₁) × sin(θ₂), then use arcsin.',
                     `Try: sin(θ₁) = (${question.n2.toFixed(2)}/${question.n1.toFixed(2)}) × sin(${question.theta2.toFixed(1)}°)`
-                ],
-                'n1': [
+                ];
+            } else if (question.type === 'n1') {
+                hintArray = [
                     'Rearrange Snell\'s Law to isolate n₁: n₁ = n₂ sin(θ₂) / sin(θ₁)',
                     'Remember to use the sine of the angles, not the angles themselves.',
                     `Try: n₁ = ${question.n2.toFixed(2)} × sin(${question.theta2.toFixed(1)}°) / sin(${question.theta1.toFixed(1)}°)`
-                ],
-                'n2': [
+                ];
+            } else if (question.type === 'n2') {
+                hintArray = [
                     'Rearrange Snell\'s Law to isolate n₂: n₂ = n₁ sin(θ₁) / sin(θ₂)',
                     'Make sure your calculator is in degree mode!',
                     `Try: n₂ = ${question.n1.toFixed(2)} × sin(${question.theta1.toFixed(1)}°) / sin(${question.theta2.toFixed(1)}°)`
-                ],
-                'tir': [
-                    'For the critical angle, use: sin(θc) = n₂/n₁',
-                    'The critical angle is when sin(θ₂) would equal 1.',
-                    `Try: θc = arcsin(${question.n2.toFixed(2)}/${question.n1.toFixed(2)})`
-                ]
-            };
+                ];
+            } else if (question.type === 'tir') {
+                const ratio = (question.n2 / question.n1).toFixed(3);
+                hintArray = [
+                    'For the critical angle, use: sin(θc) = n₂/n₁. Total internal reflection occurs when light cannot refract into the second medium.',
+                    'The critical angle is when sin(θ₂) would equal 1. Beyond this angle, the light reflects instead of refracts.',
+                    `Try calculating: θc = arcsin(${question.n2.toFixed(2)}/${question.n1.toFixed(2)}) = arcsin(${ratio})`
+                ];
+            }
             
-            return hints[question.type][attemptNum - 1] || 'Double-check your calculation!';
+            console.log('Hint array for type', question.type, ':', hintArray);
+            
+            if (!hintArray) {
+                console.error('No hints found for question type:', question.type);
+                return 'Double-check your calculation and make sure you\'re using the right formula!';
+            }
+            
+            const selectedHint = hintArray[attemptNum - 1] || 'Double-check your calculation!';
+            console.log('Selected hint:', selectedHint);
+            return selectedHint;
         }
 
         /**
@@ -1221,22 +1244,26 @@
 
         // ===== EVENT LISTENERS =====
         
-        // Allow Enter key to submit answer
-        document.getElementById('answer-input').addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                submitAnswer();
-            }
-        });
-
-        // Global Enter key handler for next question functionality
+        // Global Enter key handler for both submitting answers and advancing to next question
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Enter') {
                 const nextButtonContainer = document.getElementById('next-button-container');
                 const answerInput = document.getElementById('answer-input');
+                const gameScreen = document.getElementById('game-screen');
                 
-                // If next button is visible and input is disabled, go to next question
-                if (nextButtonContainer.style.display === 'block' && answerInput.disabled) {
+                // Only handle Enter if we're on the game screen
+                if (!gameScreen.classList.contains('active')) {
+                    return;
+                }
+                
+                // If next button is visible, go to next question
+                if (nextButtonContainer.style.display === 'block') {
                     nextQuestion();
+                    event.preventDefault();
+                } 
+                // Otherwise, if input is not disabled, submit answer
+                else if (!answerInput.disabled) {
+                    submitAnswer();
                     event.preventDefault();
                 }
             }
